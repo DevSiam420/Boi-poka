@@ -2,6 +2,48 @@ import React, { useEffect, useState } from "react";
 import { useLoaderData, useParams } from "react-router";
 import { AddToStoreDB, GetStoredData } from "../../Utility/AddToDB";
 
+// Toast
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+/* ===============================
+   🚀 FUTURISTIC NEON TOAST
+================================ */
+const NeonToast = ({
+  title,
+  message,
+  icon,
+  color = "from-indigo-500 to-fuchsia-500",
+}) => {
+  return (
+    <div className="relative overflow-hidden rounded-2xl w-[300px]">
+      {/* glow bar */}
+      <div
+        className={`absolute top-0 left-0 h-[3px] w-full bg-gradient-to-r ${color}`}
+      />
+
+      {/* glow background */}
+      <div
+        className={`absolute -inset-1 blur-xl opacity-40 bg-gradient-to-r ${color}`}
+      />
+
+      {/* content */}
+      <div className="relative flex gap-3 items-start p-4 bg-[#0b1020]/90 backdrop-blur-xl border border-white/10 rounded-2xl text-white">
+        <div
+          className={`flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${color} shadow-lg`}
+        >
+          <span className="text-lg">{icon}</span>
+        </div>
+
+        <div className="flex-1">
+          <h4 className="text-sm font-semibold leading-none">{title}</h4>
+          <p className="text-xs text-white/70 mt-1">{message}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BookDetails = () => {
   const { id } = useParams();
   const data = useLoaderData();
@@ -11,24 +53,47 @@ const BookDetails = () => {
 
   const [isRead, setIsRead] = useState(false);
 
-  // ✅ Check read status (PERMANENT)
   useEffect(() => {
     const storedReadBooks = GetStoredData();
     setIsRead(storedReadBooks.includes(bookId));
   }, [bookId]);
 
-  const HandleMarkAsRead = () => {
-    const added = AddToStoreDB(bookId);
-    if (added) setIsRead(true);
+  /* 🔔 TOAST HELPER */
+  const showToast = (props) => {
+    toast(<NeonToast {...props} />, {
+      autoClose: 2300,
+      hideProgressBar: true,
+      closeButton: false,
+      className: "bg-transparent shadow-none p-0",
+      bodyClassName: "p-0",
+    });
   };
 
-  // ❗ Safety check
+  const HandleMarkAsRead = () => {
+    const added = AddToStoreDB(bookId);
+
+    if (added) {
+      setIsRead(true);
+      showToast({
+        title: "Marked as Read",
+        message: "Book added to your read list",
+        icon: "📘",
+        color: "from-emerald-400 to-cyan-400",
+      });
+    } else {
+      showToast({
+        title: "Already Read",
+        message: "You already completed this book",
+        icon: "📗",
+        color: "from-yellow-400 to-orange-500",
+      });
+    }
+  };
+
   if (!FindedBook) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
-        <h1 className="text-4xl md:text-5xl font-bold text-white">
-          📘 Book Not Found
-        </h1>
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        Book Not Found
       </div>
     );
   }
@@ -47,111 +112,82 @@ const BookDetails = () => {
   } = FindedBook;
 
   return (
-    <div className="px-4 py-10 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] ">
-      {/* Glass Container */}
-      <div className="max-w-6xl mx-auto rounded-3xl border border-white/10 bg-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 sm:p-5 lg:p-6">
-          {/* IMAGE */}
-          <div className="flex justify-center lg:justify-start">
-            <div className="relative group">
-              {/* Soft glow */}
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/30 to-fuchsia-500/30 blur-lg opacity-70 group-hover:opacity-100 transition" />
-
-              <div className="relative card bg-white/15 backdrop-blur-xl rounded-3xl p-3 shadow-xl transition-transform duration-300 group-hover:scale-[1.03]">
-                <img
-                  src={image}
-                  alt={bookName}
-                  className="w-56 sm:w-60 md:w-64 rounded-2xl object-cover"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* INFO */}
-          <div className="flex flex-col justify-between text-white">
-            <div className="space-y-3">
-              {/* Title */}
-              <div>
-                <h1 className="text-2xl md:text-3xl font-extrabold leading-snug">
-                  {bookName}
-                </h1>
-                <p className="text-white/60 text-sm mt-0.5">
-                  by <span className="font-semibold text-white">{author}</span>
-                </p>
-              </div>
-
-              {/* Category */}
-              <span className="badge badge-outline border-white/30 text-white">
-                {category}
-              </span>
-
-              {/* Review */}
-              <p className="text-sm text-white/80 leading-relaxed">
-                <span className="font-semibold text-white">Review:</span>{" "}
-                {review}
-              </p>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="badge badge-sm bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Meta */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/75 border-t border-white/15 pt-3">
-                <p>
-                  <span className="text-white font-medium">Pages:</span>{" "}
-                  {totalPages}
-                </p>
-                <p>
-                  <span className="text-white font-medium">Rating:</span> ⭐{" "}
-                  {rating}
-                </p>
-                <p>
-                  <span className="text-white font-medium">Publisher:</span>{" "}
-                  {publisher}
-                </p>
-                <p>
-                  <span className="text-white font-medium">Year:</span>{" "}
-                  {yearOfPublishing}
-                </p>
-              </div>
+    <>
+      <div className="px-4 py-10 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617]">
+        <div className="max-w-6xl mx-auto rounded-3xl border border-white/10 bg-white/10 backdrop-blur-2xl shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-5">
+            {/* IMAGE */}
+            <div className="flex justify-center">
+              <img
+                src={image}
+                alt={bookName}
+                className="w-60 rounded-2xl shadow-xl"
+              />
             </div>
 
-            {/* ACTIONS */}
-            <div className="mt-4 flex flex-col sm:flex-row gap-2">
-              <button
-                onClick={HandleMarkAsRead}
-                disabled={isRead}
-                className={`btn btn-sm rounded-full px-6 font-semibold transition-all
-              ${
-                isRead
-                  ? "btn-success text-white cursor-not-allowed"
-                  : "btn-outline border-white/30 text-white hover:bg-white/20 hover:scale-105"
-              }
-            `}
-              >
-                {isRead ? "✔ Read Already" : "Mark as Read"}
-              </button>
+            {/* INFO */}
+            <div className="text-white flex flex-col justify-between">
+              <div className="space-y-3">
+                <h1 className="text-3xl font-bold">{bookName}</h1>
+                <p className="text-white/60">by {author}</p>
 
-              <button
-                className="btn btn-sm rounded-full px-6 font-semibold text-white
-              bg-gradient-to-r from-sky-500 to-indigo-600
-              shadow-md hover:shadow-indigo-500/40 hover:scale-105 transition"
-              >
-                + Wishlist
-              </button>
+                <span className="badge badge-outline text-white border-white/30">
+                  {category}
+                </span>
+
+                <p className="text-sm text-white/80">{review}</p>
+
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag, i) => (
+                    <span key={i} className="text-xs text-cyan-300">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 text-xs text-white/70 pt-3 border-t border-white/10">
+                  <p>Pages: {totalPages}</p>
+                  <p>Rating: ⭐ {rating}</p>
+                  <p>Publisher: {publisher}</p>
+                  <p>Year: {yearOfPublishing}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={HandleMarkAsRead}
+                  disabled={isRead}
+                  className={`btn btn-sm rounded-full px-6 ${
+                    isRead
+                      ? "btn-success"
+                      : "btn-outline border-white/30 text-white"
+                  }`}
+                >
+                  {isRead ? "✔ Read" : "Mark as Read"}
+                </button>
+
+                <button
+                  onClick={() =>
+                    showToast({
+                      title: "Wishlist",
+                      message: "Saved for later",
+                      icon: "💖",
+                      color: "from-pink-500 to-rose-500",
+                    })
+                  }
+                  className="btn btn-sm rounded-full px-6 text-white bg-gradient-to-r from-pink-500 to-rose-500"
+                >
+                  + Wishlist
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* TOAST ROOT */}
+      <ToastContainer position="top-right" />
+    </>
   );
 };
 
