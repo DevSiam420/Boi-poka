@@ -1,25 +1,24 @@
-// Get all stored read book ids
-const GetStoredBook = () => {
-  const storedBookStr = localStorage.getItem("readList");
+// Utility/AddToDB.js
 
-  if (storedBookStr) {
-    return JSON.parse(storedBookStr);
-  }
-  return [];
+const STORAGE_KEY = "readList";
+
+// -- Get Data from localStorage --
+const GetStoredData = () => {
+  const storedData = localStorage.getItem(STORAGE_KEY);
+  return storedData ? JSON.parse(storedData) : [];
 };
 
-// -- 
-
+// -- Add book to read list --
 const AddToStoreDB = (id) => {
-  const storedBookData = GetStoredBook();
+  const storedData = GetStoredData();
 
-  if (storedBookData.includes(id)) {
-    alert("Book already marked as Read!");
-    return;
+  if (storedData.includes(id)) {
+    return false; // already exists
   }
 
-  storedBookData.push(id);
-  localStorage.setItem("readList", JSON.stringify(storedBookData));
+  storedData.push(id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+  return true;
 };
 
-export { GetStoredBook, AddToStoreDB };
+export { AddToStoreDB, GetStoredData };

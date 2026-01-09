@@ -1,43 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useLoaderData, useParams } from "react-router";
-import { AddToStoreDB } from "../../Utility/AddToDB";
+import { AddToStoreDB, GetStoredData } from "../../Utility/AddToDB";
 
 const BookDetails = () => {
   const { id } = useParams();
   const data = useLoaderData();
 
-  const bookId = parseInt(id);
+  const bookId = Number(id);
   const FindedBook = data.find((book) => book.bookId === bookId);
 
   const [isRead, setIsRead] = useState(false);
 
-  // check if already read (permanent)
+  // ✅ Check read status (PERMANENT)
   useEffect(() => {
-    const storedReadBooks =
-      JSON.parse(localStorage.getItem("read-books")) || [];
-    if (storedReadBooks.includes(bookId)) {
-      setIsRead(true);
-    }
+    const storedReadBooks = GetStoredData();
+    setIsRead(storedReadBooks.includes(bookId));
   }, [bookId]);
 
-  const HandleMarkAsRead = (id) => {
-    AddToStoreDB(id);
-    setIsRead(true);
+  const HandleMarkAsRead = () => {
+    const added = AddToStoreDB(bookId);
+    if (added) setIsRead(true);
   };
 
   // ❗ Safety check
   if (!FindedBook) {
     return (
-      <div className="w-full my-15 rounded-2xl flex items-center justify-center bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] px-4 h-[60vh] md:h-[70vh]">
-        <div className="relative max-w-4xl w-full text-center rounded-[2.5rem] border border-white/20 bg-white/10 backdrop-blur-2xl p-12 shadow-[0_0_80px_rgba(168,85,247,0.35)] animate-fadeIn">
-          <div className="text-7xl mb-5 animate-float">📘</div>
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-5 bg-gradient-to-r from-fuchsia-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            Book Not Found
-          </h1>
-          <p className="text-base md:text-lg text-gray-300 max-w-2xl mx-auto">
-            The book you’re looking for doesn’t exist or was removed.
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
+        <h1 className="text-4xl md:text-5xl font-bold text-white">
+          📘 Book Not Found
+        </h1>
       </div>
     );
   }
@@ -56,83 +47,107 @@ const BookDetails = () => {
   } = FindedBook;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white rounded-xl shadow-sm border p-6">
-        {/* Image */}
-        <div className="flex justify-center">
-          <div className="bg-gray-100 rounded-xl p-6">
-            <img
-              src={image}
-              alt={bookName}
-              className="w-[260px] object-contain"
-            />
+    <div className="px-4 py-10 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] ">
+      {/* Glass Container */}
+      <div className="max-w-6xl mx-auto rounded-3xl border border-white/10 bg-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 sm:p-5 lg:p-6">
+          {/* IMAGE */}
+          <div className="flex justify-center lg:justify-start">
+            <div className="relative group">
+              {/* Soft glow */}
+              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/30 to-fuchsia-500/30 blur-lg opacity-70 group-hover:opacity-100 transition" />
+
+              <div className="relative card bg-white/15 backdrop-blur-xl rounded-3xl p-3 shadow-xl transition-transform duration-300 group-hover:scale-[1.03]">
+                <img
+                  src={image}
+                  alt={bookName}
+                  className="w-56 sm:w-60 md:w-64 rounded-2xl object-cover"
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Info */}
-        <div className="space-y-4">
-          <h1 className="text-3xl font-serif font-semibold">{bookName}</h1>
+          {/* INFO */}
+          <div className="flex flex-col justify-between text-white">
+            <div className="space-y-3">
+              {/* Title */}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-extrabold leading-snug">
+                  {bookName}
+                </h1>
+                <p className="text-white/60 text-sm mt-0.5">
+                  by <span className="font-semibold text-white">{author}</span>
+                </p>
+              </div>
 
-          <p className="text-sm text-gray-600">
-            By : <span className="font-medium">{author}</span>
-          </p>
-
-          <p className="text-sm font-medium text-gray-700">{category}</p>
-
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">Review :</span> {review}
-          </p>
-
-          {/* Tags */}
-          <div className="flex gap-2 flex-wrap">
-            {tags.map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700"
-              >
-                #{tag}
+              {/* Category */}
+              <span className="badge badge-outline border-white/30 text-white">
+                {category}
               </span>
-            ))}
-          </div>
 
-          <hr />
+              {/* Review */}
+              <p className="text-sm text-white/80 leading-relaxed">
+                <span className="font-semibold text-white">Review:</span>{" "}
+                {review}
+              </p>
 
-          {/* Meta */}
-          <div className="space-y-2 text-sm text-gray-700">
-            <p>
-              <span className="font-medium">Number of Pages :</span>{" "}
-              {totalPages}
-            </p>
-            <p>
-              <span className="font-medium">Publisher :</span> {publisher}
-            </p>
-            <p>
-              <span className="font-medium">Year of Publishing :</span>{" "}
-              {yearOfPublishing}
-            </p>
-            <p>
-              <span className="font-medium">Rating :</span> ⭐ {rating}
-            </p>
-          </div>
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="badge badge-sm bg-emerald-400/20 text-emerald-300 border border-emerald-400/30"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
 
-          {/* Buttons */}
-          <div className="flex gap-4 pt-4">
-            <button
-              onClick={() => HandleMarkAsRead(bookId)}
-              disabled={isRead}
-              className={`px-6 py-2 border rounded-lg text-sm transition
-                ${
-                  isRead
-                    ? "bg-green-500 text-white border-green-500 cursor-not-allowed"
-                    : "hover:bg-gray-100"
-                }`}
-            >
-              {isRead ? "Read Already ✓" : "Read"}
-            </button>
+              {/* Meta */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-white/75 border-t border-white/15 pt-3">
+                <p>
+                  <span className="text-white font-medium">Pages:</span>{" "}
+                  {totalPages}
+                </p>
+                <p>
+                  <span className="text-white font-medium">Rating:</span> ⭐{" "}
+                  {rating}
+                </p>
+                <p>
+                  <span className="text-white font-medium">Publisher:</span>{" "}
+                  {publisher}
+                </p>
+                <p>
+                  <span className="text-white font-medium">Year:</span>{" "}
+                  {yearOfPublishing}
+                </p>
+              </div>
+            </div>
 
-            <button className="px-6 py-2 bg-sky-500 text-white rounded-lg text-sm hover:bg-sky-600 transition">
-              Wishlist
-            </button>
+            {/* ACTIONS */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={HandleMarkAsRead}
+                disabled={isRead}
+                className={`btn btn-sm rounded-full px-6 font-semibold transition-all
+              ${
+                isRead
+                  ? "btn-success text-white cursor-not-allowed"
+                  : "btn-outline border-white/30 text-white hover:bg-white/20 hover:scale-105"
+              }
+            `}
+              >
+                {isRead ? "✔ Read Already" : "Mark as Read"}
+              </button>
+
+              <button
+                className="btn btn-sm rounded-full px-6 font-semibold text-white
+              bg-gradient-to-r from-sky-500 to-indigo-600
+              shadow-md hover:shadow-indigo-500/40 hover:scale-105 transition"
+              >
+                + Wishlist
+              </button>
+            </div>
           </div>
         </div>
       </div>
